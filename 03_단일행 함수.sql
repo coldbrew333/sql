@@ -23,7 +23,7 @@ FROM employees;
 --m은 검사시작 우치,n은 찾는 횟수
 SELECT first_name,
  instr(first_name,'e'),
-  instr(first_name,'e',1,2)--처음부터 검사하고 두번쨰 'e'의 위치
+  instr(first_name,'e',1,2)--처음부터 검사하고 두번? 'e'의 위치
 FROM employees;
 
 --lpad,rpad(문자열,자릿수,'문자'):특정 문자로 앞뒤에 넣는다.
@@ -77,7 +77,7 @@ TRUNC(15.193,0) AS 정수,--소수첫째자리에서 버림
 TRUNC(15.193,-1) AS "10의 자리"--10의 자리 5에서 버림
 FROM DUAL;
 
---ID가 짝수번쨰 직원들을 출력한다. MOD
+--ID가 짝수번? 직원들을 출력한다. MOD
 SELECT employee_id,LAST_NAME
 FROM employees
 WHERE MOD(employee_id,2)=0--2로 나눈 나머지가 0이면 짝수이다.1이면 홀수
@@ -183,4 +183,97 @@ FROM DUAL;
   SELECT TO_NUMBER('100')+100
   FROM DUAL;
   
+  --Null값 처리 함수
+  --NVL함수(X,Y)만약에 X가 널값이면 Y값으로 대체한다.
+  
+  SELECT  last_name,NVL(MANAGER_ID,0) AS 매니저
+  FROM EMPLOYEES
+  WHERE LAST_NAME ='King';
+  
+    SELECT  last_name,MANAGER_ID AS 매니저
+  FROM EMPLOYEES
+  WHERE LAST_NAME ='King';--NVL이 없을 경우, 값이 없는 곳은 NULL값이 나온다.
+  
+  --NVL2(ex,ex1,ex2):ex값이 널값이 아닌경우 ex1으로 대체하고 널값이면 ex2로 대체한다.
+SELECT employee_id, last_name,NVL2(MANAGER_ID,1,0) AS 매니저유무
+FROM EMPLOYEES
+WHERE LAST_NAME ='King';
+
+--예제1
+--내가 풀음
+SELECT last_name,salary,
+NVL(commission_pct,0),(SALARY*12)+NVL(commission_pct*12*salary,0) 
+FROM employees;
+--강사님이 풀음
+SELECT last_name,salary,
+NVL(commission_pct,0),
+SALARY*12+salary*12*NVL(commission_pct,0) AS 연봉 
+FROM employees
+ORDER BY 연봉 DESC;
+
+--예제2
+SELECT last_name,salary,
+NVL(commission_pct,0),
+SALARY*12+salary*12*NVL(commission_pct,0) AS 연봉 ,
+NVL2(commission_pct,'SAL+COMM','SAL')AS 연봉계산
+--(SALARY*12)+NVL2(commission_pct*12*salary,SAL,SAL+COMM)===>내가풀었음(결과값 나오지 않음)
+FROM employees
+ORDER BY 연봉 DESC;
+
+--DECODE함수
+
+SELECT last_name,JOB_ID,SALARY,
+DECODE(job_id,'IT_PROG',SALARY*1.0,
+                           'ST_CLERK',SALARY*1.15,
+                           'SA_REP', SALARY*1.20,
+                                           SALARY)AS 수정월급
+FROM employees;
+
+--예제1
+SELECT LAST_NAME,job_id,salary,
+DECODE(TRUNC(salary/2000), 0, 0.00,
+                                                    1,0.09,
+                                                    2,0.20,
+                                                    3,0.30,
+                                                    4,0.40,
+                                                    5,0.42,
+                                                    6,0.44,
+                                                       0.45)AS 세율
+FROM EMPLOYEES;
+
+--CASE함수:조건문에 비교를 할수있다
+SELECT last_name,JOB_ID,SALARY,
+CASE job_id WHEN  ' IT_PROG'   THEN  SALARY*1.0
+                     WHEN  ' ST_CLERK'  THEN   SALARY*1.15
+                     WHEN   'SA_REP'      THEN   SALARY*1.20
+                      ELSE                                      SALARY
+                      END AS 월급수정
+FROM employees;
+
+SELECT last_name, JOB_ID,SALARY,
+CASE WHEN SALARY <5000 THEN 'LOW'
+            WHEN SALARY < 10000 THEN 'Medium'
+            WHEN SALARY < 20000 THEN 'Good'
+            ELSE                                            'Excellent'--20000Q보다 이상일 경우
+            END AS 급여 --OR END "급여"
+FROM EMPLOYEES;
+
+
+--예제1
+SELECT employee_id,first_name,last_name,SALARY,
+CASE WHEN SALARY >=9000 THEN '상위급여'
+            WHEN SALARY >=6000 THEN '중위급여'--9000미만이면서 6000이상일때
+             ELSE                                            '하위급여'--6000미만일 경우
+            END AS 급여등급
+FROM EMPLOYEES
+WHERE JOB_ID ='IT_PROG';
+
+SELECT employee_id,first_name,last_name,SALARY,
+CASE WHEN SALARY >=9000 THEN '상위등급'
+  WHEN SALARY BETWEEN 6000 AND 8999 THEN '중위등급'
+                                                                                       ELSE '하위등급'
+            END  AS 급여    등급                                                            
+FROM EMPLOYEES
+ORDER BY 급여등급 
+WHERE JOB_ID='IT_PROG';
 
